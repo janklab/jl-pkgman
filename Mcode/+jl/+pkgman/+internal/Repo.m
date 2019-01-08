@@ -248,6 +248,16 @@ classdef Repo < handle
             end
             log_info('Loaded package %s', pkgSpec);
         end
+        
+        function removePackage(this, pkgSpec)
+            if ~this.hasPkgInstalled(pkgSpec)
+                log_warn('Package %s is not installed in repo %s', ...
+                    pkgSpec, this.name);
+            end
+            installDir = this.installDirForPkgVer(pkgSpec);
+            rm_rf(installDir);
+            log_info('Removed package %s', pkgSpec);
+        end
     end
 end
 

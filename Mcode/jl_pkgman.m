@@ -25,6 +25,11 @@ switch subcmd
         version = jl.pkgman.internal.Version(versionStr);
         pkgVer = jl.pkgman.internal.PkgVerSpec(name, version);
         pm.load(pkgVer);
+    case 'remove'
+        [name,versionStr] = varargin{:};
+        version = jl.pkgman.internal.Version(versionStr);
+        pkgVer = jl.pkgman.internal.PkgVerSpec(name, version);
+        pm.remove(pkgVer);
     otherwise
         error('Invalid command: %s', subcmd);
 end

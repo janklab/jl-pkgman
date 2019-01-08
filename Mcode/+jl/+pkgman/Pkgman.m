@@ -33,5 +33,21 @@ classdef Pkgman < handle
             error('Could not find package %s installed', pkgVerSpec);
         end
         
+        function remove(this, pkgVerSpec)
+            %REMOVE Remove an installed package
+            found = false;
+            for i = 1:numel(this.world.repoOrder)
+                repoName = this.world.repoOrder{i};
+                repo = this.world.getRepo(repoName);
+                if repo.hasPkgInstalled(pkgVerSpec)
+                    repo.removePackage(pkgVerSpec);
+                    found = true;
+                end
+            end
+            if ~found
+                log_info('Package %s is not installed', pkgVerSpec);
+            end
+        end
+        
     end
 end
