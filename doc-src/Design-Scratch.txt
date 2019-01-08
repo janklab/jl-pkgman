@@ -16,9 +16,10 @@ Design-Scratch
     - <username>/
       - <tapname>
         - metadata/
-          - pkgs/
-          - pkgsets/
   - caches/
+    - pkg-downloads/
+      - <pkgname>/
+        - <pkgname>-<version>.[zip|.tar.gz|.tar.bz]
   - pkgs/
     - <pkgname>/
       - <version>/
