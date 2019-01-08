@@ -1,0 +1,34 @@
+Design-Scratch
+==============
+
+# Repo layout
+
+- <repo>/
+  - .gitignore
+  - metadata/
+    - pkgs/
+      - <pkgname>/
+        - <pkgname>-<version>.json
+        - ...
+    - pkgsets/
+      - <pkgset_name>.txt
+  - taps/
+    - <username>/
+      - <tapname>
+        - metadata/
+          - pkgs/
+          - pkgsets/
+  - caches/
+  - pkgs/
+    - <pkgname>/
+      - <version>/
+        - RECEIPT.json
+        - contents/
+          - ... actual contents of package, like tarball dumped here ...
+
+
+Taps have the same partial layout as a repo: metadata/, but no taps/, pkgs/, or caches/.
+
+Pkgsets are lists of PkgRequirement specs:
+<name>
+<name> [< <= == => >] <version>
