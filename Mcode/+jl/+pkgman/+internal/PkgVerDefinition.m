@@ -9,6 +9,7 @@ classdef PkgVerDefinition
         mcodePaths = 'auto'
         javaPaths
         loadCode
+        hoistSingleDir = true
     end
     
     methods
@@ -27,16 +28,14 @@ classdef PkgVerDefinition
         end
         
         function this = set.loadCode(this, in)
-            if ~isequal(in, 'auto')
-                in = cellstr(in);
-            end
+            if isempty(in); in = {}; end
+            in = cellstr(in);
             this.loadCode = in;
         end
         
         function this = set.buildCode(this, in)
-            if ~isequal(in, 'auto')
-                in = cellstr(in);
-            end
+            if isempty(in); in = {}; end
+            in = cellstr(in);
             this.buildCode = in;
         end
         

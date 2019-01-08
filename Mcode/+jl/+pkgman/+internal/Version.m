@@ -26,6 +26,9 @@ classdef Version
                 this = str;
                 return
             end
+            if isstruct(str)
+                str = str.str;
+            end
             mustBeA(str, 'char');
             this.str = str;
         end

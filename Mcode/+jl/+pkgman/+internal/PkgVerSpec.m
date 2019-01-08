@@ -27,6 +27,10 @@ classdef PkgVerSpec
             end
             out = sprintf('%s %s', this.name, this.version);
         end
+        
+        function out = char(this)
+            out = dispstr(this);
+        end
     end
     
 end

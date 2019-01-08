@@ -20,5 +20,18 @@ classdef Pkgman < handle
             repo.install(pkgDefn);
         end
         
+        function load(this, pkgVerSpec)
+            %LOAD Load an installed package
+            for i = 1:numel(this.world.repoOrder)
+                repoName = this.world.repoOrder{i};
+                repo = this.world.getRepo(repoName);
+                if repo.hasPkgInstalled(pkgVerSpec)
+                    repo.loadPackage(pkgVerSpec);
+                    return;
+                end
+            end
+            error('Could not find package %s installed', pkgVerSpec);
+        end
+        
     end
 end

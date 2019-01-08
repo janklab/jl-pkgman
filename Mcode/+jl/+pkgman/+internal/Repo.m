@@ -45,6 +45,11 @@ classdef Repo < handle
                 this.metadataDir, pkgSpec.name, pkgSpec.name, pkgSpec.version);
         end
         
+        function out = installDirForPkgVer(this, pkgSpec)
+            out = sprintf('%s/%s/%s', ...
+                this.pkgsDir, pkgSpec.name, pkgSpec.version);
+        end
+        
         function out = hasPkgVerDefinition(this, pkgSpec)
             file = this.defnFileForPkgVer(pkgSpec);
             out = exist(file, 'file');
@@ -65,6 +70,8 @@ classdef Repo < handle
             %INSTALL Install a requested package
             mustBeA(pkgDefn, 'jl.pkgman.internal.PkgVerDefinition');
             
+            % Download
+            distFile = this.cachedDownload(pkgDefn);
             % Prep dirs
             pkgDestDir = [this.pkgsDir '/' pkgDefn.name '/' pkgDefn.version.str];
             mymkdir(pkgDestDir);
@@ -74,16 +81,19 @@ classdef Repo < handle
                 return;
             end
             mymkdir(contentsDir);
-            % Download
-            distFile = this.cachedDownload(pkgDefn);
-            % Extract
-            this.extractToDir(distFile, contentsDir);
-            % Build
-            this.build(pkgDefn, pkgDestDir, contentsDir);
-            % Detect Mcode and Java paths
-            effPkgDefn = this.detectPkgPaths(pkgDefn, contentsDir);
-            % Write receipt
-            this.writeReceipt(effPkgDefn, pkgDestDir);
+            try
+                % Extract
+                this.extractToDir(distFile, contentsDir, pkgDefn);
+                % Build
+                this.build(pkgDefn, pkgDestDir, contentsDir);
+                % Detect Mcode and Java paths
+                effPkgDefn = this.detectPkgPaths(pkgDefn, contentsDir);
+                % Write receipt
+                this.writeReceipt(effPkgDefn, pkgDestDir);
+            catch err
+                % TODO: Remove bad installation directory
+                rethrow(err);
+            end
             log_info('Installed %s %s', pkgDefn.name, pkgDefn.version);
         end
 
@@ -109,7 +119,7 @@ classdef Repo < handle
             out = cacheFile;
         end
         
-        function extractToDir(this, archiveFile, targetDir)
+        function extractToDir(this, archiveFile, targetDir, pkgDefn)
             extn = this.sniffDownloadExtensionFromUrl(archiveFile);
             switch extn
                 case '.tar.gz'
@@ -123,7 +133,19 @@ classdef Repo < handle
                 otherwise
                     error('Unsupported archive file format: %s', extn);
             end
-            
+            % Hoist single-subdir contents
+            if pkgDefn.hoistSingleDir
+                d = mydir(targetDir);
+                if isscalar(d) && d.isdir
+                    subDirName = d.name;
+                    subDir = [targetDir '/' subDirName];
+                    d = mydir(subDir);
+                    for i = 1:numel(d)
+                        movefile([subDir '/' d(i).name], targetDir);
+                    end
+                    rmdir(subDir);
+                end
+            end
         end
         
         function build(this, pkgDefn, pkgDestDir, contentsDir)
@@ -186,6 +208,45 @@ classdef Repo < handle
             receiptFile = [pkgDestDir '/RECEIPT.json'];
             jsonText = jsonencode(receipt);
             jl.pkgman.internal.spew(receiptFile, jsonText);
+        end
+        
+        function out = hasPkgInstalled(this, pkgSpec)
+            installDir = this.installDirForPkgVer(pkgSpec);
+            out = exist(installDir, 'dir');
+        end
+        
+        function loadPackage(this, pkgSpec)
+            if ~this.hasPkgInstalled(pkgSpec)
+                error('Package %s is not installed in repo %s', ...
+                    pkgSpec, this.name);
+            end
+            % Get receipt from installation
+            installDir = this.installDirForPkgVer(pkgSpec);
+            contentsDir = [installDir '/contents'];
+            receiptFile = [installDir '/RECEIPT.json'];
+            receiptText = jl.pkgman.internal.slurp(receiptFile);
+            receipt = jl.pkgman.internal.Receipt.parseJson(receiptText);
+            pkgDefn = receipt.pkgDefinition;
+            % Add paths
+            for i = 1:numel(pkgDefn.mcodePaths)
+                addpath(fullfile(contentsDir, pkgDefn.mcodePaths{i}));
+            end
+            for i = 1:numel(pkgDefn.javaPaths)
+                javaaddpath(fullfile(contentsDir, pkgDefn.javaPaths{i}));
+            end
+            % Call custom init code
+            if ~isempty(pkgDefn.loadCode)
+                origCd = pwd;
+                try
+                    loadCode = strjoin(pkgDefn.loadCode, '\n');
+                    eval(loadCode);
+                catch err
+                    cd(origCd);
+                    rethrow(err);
+                end
+                cd(origCd);
+            end
+            log_info('Loaded package %s', pkgSpec);
         end
     end
 end

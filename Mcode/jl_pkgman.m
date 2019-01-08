@@ -20,6 +20,11 @@ switch subcmd
         version = jl.pkgman.internal.Version(versionStr);
         pkgVer = jl.pkgman.internal.PkgVerSpec(name, version);
         pm.install(pkgVer);
+    case 'load'
+        [name,versionStr] = varargin{:};
+        version = jl.pkgman.internal.Version(versionStr);
+        pkgVer = jl.pkgman.internal.PkgVerSpec(name, version);
+        pm.load(pkgVer);
     otherwise
         error('Invalid command: %s', subcmd);
 end
