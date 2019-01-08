@@ -8,12 +8,16 @@ classdef Pkgman < handle
     methods
         function install(this, pkgVerSpec, repoName)
             if nargin < 3; repoName = []; end
+            mustBeA(pkgVerSpec, 'jl.pkgman.internal.PkgVerSpec');
             
+            % Get definition
+            pkgDefn = this.world.getPkgVerDefinition(pkgVerSpec);
+            % Do installation
             if isempty(repoName)
                 repoName = this.world.defaultRepoName;
             end
-            repo = this.world.getRepo(repoName);
-            repo.install(pkgVerSpec);
+            repo = this.world.getRepo(repoName);            
+            repo.install(pkgDefn);
         end
         
     end

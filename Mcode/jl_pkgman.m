@@ -1,5 +1,16 @@
-function pkgman(subcmd, varargin)
-%PKGMAN Command style interface to jl-pkgman
+function jl_pkgman(subcmd, varargin)
+%JL_PKGMAN Command style interface to jl-pkgman
+%
+% jl_pkgman <command> [...arguments...]
+%
+% Usage:
+%
+%   jl_pkgman install <package> <version>
+%
+
+if nargin < 1
+    error('<command> is required.');
+end
 
 pm = jl.pkgman.Pkgman;
 

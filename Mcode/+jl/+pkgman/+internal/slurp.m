@@ -6,5 +6,6 @@ if fid < 0
     error('Could not read file %s: %s', file, errmsg);
 end
 out = fread(fid, '*char');
+out = out';
 fclose(fid);
 end

@@ -19,7 +19,7 @@ classdef World < handle
             if ispc
                 error('Windows is not implemented yet.');
             else
-                this.addRepo('user', fullfile(getenv('HOME'), '.jl-pkgman'));
+                this.addRepo('user', [getenv('HOME') '/.jl-pkgman']);
                 this.addRepo('system', '/usr/local/share/jl-pkgman/repo');
             end
         end
@@ -28,7 +28,8 @@ classdef World < handle
             if ismember(name, this.repoOrder)
                 error('Repo %s is already defined.', name);
             end
-            this.repos.(name) = path;
+            repo = jl.pkgman.internal.Repo(name, path);
+            this.repos.(name) = repo;
             this.repoOrder{end+1} = name;
         end
         
@@ -62,7 +63,7 @@ classdef World < handle
             for i = 1:numel(this.repoOrder)
                 repoName = this.repoOrder{i};
                 repo = this.repos.(repoName);
-                if repo.hasPkgVer(pkgSpec)
+                if repo.hasPkgVerDefinition(pkgSpec)
                     out = repo.getPkgVerDefinition(pkgSpec);
                     return
                 end

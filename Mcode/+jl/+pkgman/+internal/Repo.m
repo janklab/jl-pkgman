@@ -21,35 +21,39 @@ classdef Repo < handle
         end
         
         function out = get.metadataDir(this)
-            out = fullfile(this, 'metadata');
+            out = fullfile(this.path, 'metadata');
         end
         
         function out = get.pkgsDir(this)
-            out = fullfile(this, 'pkgs');
+            out = fullfile(this.path, 'pkgs');
         end
         
         function out = get.tapsDir(this)
-            out = fullfile(this, 'taps');
+            out = fullfile(this.path, 'taps');
         end
         
         function out = cacheDir(this, cacheName)
             if nargin == 1
-                out = fullfile(this, 'caches');
+                out = fullfile(this.path, 'caches');
             else
-                out = fullfile(this, 'caches', cacheName);
+                out = fullfile(this.path, 'caches', cacheName);
             end
         end
         
         function out = defnFileForPkgVer(this, pkgSpec)
             out = sprintf('%s/pkgs/%s/%s-%s.json', ...
-                this.metadataDir, pkgSpec.name, pkgSpec.version.str);
+                this.metadataDir, pkgSpec.name, pkgSpec.name, pkgSpec.version);
         end
         
+        function out = hasPkgVerDefinition(this, pkgSpec)
+            file = this.defnFileForPkgVer(pkgSpec);
+            out = exist(file, 'file');
+        end
+
         function out = getPkgVerDefinition(this, pkgSpec)
-            file = sprintf('%s/pkgs/%s/%s-%s.json', ...
-                this.metadataDir, pkgSpec.name, pkgSpec.version.str);
+            file = this.defnFileForPkgVer(pkgSpec);
             if exist(file, 'file')
-                out = this.readPkgVerDefnFromJson(file);
+                out = jl.pkgman.internal.PkgVerDefinition.readFromJson(file);
                 return;
             end
             % TODO: Search taps
@@ -59,11 +63,16 @@ classdef Repo < handle
         
         function install(this, pkgDefn)
             %INSTALL Install a requested package
+            mustBeA(pkgDefn, 'jl.pkgman.internal.PkgVerDefinition');
             
             % Prep dirs
             pkgDestDir = [this.pkgsDir '/' pkgDefn.name '/' pkgDefn.version.str];
             mymkdir(pkgDestDir);
             contentsDir = [pkgDestDir '/contents'];
+            if exist(contentsDir, 'dir')
+                log_warn('%s %s is already installed', pkgDefn.name, pkgDefn.version);
+                return;
+            end
             mymkdir(contentsDir);
             % Download
             distFile = this.cachedDownload(pkgDefn);
@@ -72,10 +81,10 @@ classdef Repo < handle
             % Build
             this.build(pkgDefn, pkgDestDir, contentsDir);
             % Detect Mcode and Java paths
-            effPkgDefn = this.detectPkgPaths(pkgDefn);
+            effPkgDefn = this.detectPkgPaths(pkgDefn, contentsDir);
             % Write receipt
             this.writeReceipt(effPkgDefn, pkgDestDir);
-            fprintf('Installed %s %s\n', pkgDefn.name, pkgDefn.version);
+            log_info('Installed %s %s', pkgDefn.name, pkgDefn.version);
         end
 
         function out = cachedDownload(this, pkgDefn)
@@ -83,14 +92,17 @@ classdef Repo < handle
             url = pkgDefn.url;
             extn = this.sniffDownloadExtensionFromUrl(url);
             name = pkgDefn.name; %#ok<*PROPLC>
-            ver = pkgDefinition.version;
-            baseFile = sprintf('%s-%s.%s', name, ver.str, extn);
+            ver = pkgDefn.version;
+            baseFile = sprintf('%s-%s%s', name, ver.str, extn);
             cacheDlDir = [this.cacheDir '/pkg-downloads'];
+            mymkdir(cacheDlDir);
             cacheFile = [cacheDlDir '/' baseFile];
             if exist(cacheFile, 'file')
+                log_info('Already downloaded: %s', cacheFile);
                 out = cacheFile;
                 return;
             end
+            log_info('Downloading: %s', url);
             tempFile = [cacheFile '.' num2str(randi(10^10)) '.tmp'];
             websave(tempFile, url);
             mymovefile(tempFile, cacheFile);
@@ -154,12 +166,15 @@ classdef Repo < handle
         end
         
         function out = sniffDownloadExtensionFromUrl(this, url) %#ok<*INUSL>
-            out = regexpi(url, '\.tar\.gz$|\.zip$', 'match');
+            out = regexpi(url, '\.tgz$|\.tar\.gz$|\.zip$', 'match');
             if isempty(out)
                 error('Unable to determine archive file extension from URL: "%s"', ...
                     url);
             end
-            out = lower(out);
+            out = lower(out{1});
+            if isequal(out, '.tgz')
+                out = '.tar.gz';
+            end
         end
         
         function writeReceipt(this, effPkgDefn, pkgDestDir)
@@ -167,6 +182,7 @@ classdef Repo < handle
             timestamp = mylocaltime();
             receipt.installDate = sprintf('%s %s', ...
                 datestr(timestamp, 'yyyy-mm-dd HH:MM:SS'), timestamp.TimeZone);
+            receipt.pkgDefinition = effPkgDefn;
             receiptFile = [pkgDestDir '/RECEIPT.json'];
             jsonText = jsonencode(receipt);
             jl.pkgman.internal.spew(receiptFile, jsonText);

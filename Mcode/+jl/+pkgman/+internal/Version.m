@@ -22,6 +22,10 @@ classdef Version
             % this = Version(str)
             %
             % Str (char) is the version string.
+            if isa(str, 'jl.pkgman.internal.Version')
+                this = str;
+                return
+            end
             mustBeA(str, 'char');
             this.str = str;
         end
