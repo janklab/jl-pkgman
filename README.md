@@ -1,8 +1,8 @@
 # jl-pkgman: A Package Manager for Matlab
 
-It's kind of a pain to install and manage third-party Matlab packages. jl-pkgman
+It’s kind of a pain to install and manage third-party Matlab packages. jl-pkgman
 is here to make that easier. It is a package manager for Matlab libraries and code.
-It's inspired by pip, Mac Homebrew, and Maven.
+It’s inspired by pip, Mac Homebrew, Maven, and Octave’s `pkg` tool.
 
 > WARNING: jl-pkgman is currently under early development. It is ALPHA quality
 > software, and not ready for production use. Use at your own
@@ -19,7 +19,7 @@ Business-friendly BSD 2-Clause License.
 
 # Contributing
 
-jl-pkgman is still in the early design and experimentation phase, so there's not much to collaborate on, code-wise. What we need now are feature requests and use case descriptions; feel free to post those as [https://github.com/apjanke/jl-pkgman/issues](Issues on the project GitHub page).
+jl-pkgman is still in the early design and experimentation phase, so there’s not much to collaborate on, code-wise. What we need now are feature requests and use case descriptions; feel free to post those as [https://github.com/apjanke/jl-pkgman/issues](Issues on the project GitHub page).
 
 # Author
 
