@@ -17,6 +17,10 @@ libraries.
 
 Business-friendly BSD 2-Clause License.
 
+# Contributing
+
+jl-pkgman is still in the early design and experimentation phase, so there's not much to collaborate on, code-wise. What we need now are feature requests and use case descriptions; feel free to post those as [https://github.com/apjanke/jl-pkgman/issues](Issues on the project GitHub page).
+
 # Author
 
 jl-pkgman is written by [Andrew Janke](https://apjanke.net).
