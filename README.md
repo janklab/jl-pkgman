@@ -10,7 +10,7 @@ It’s inspired by pip, Mac Homebrew, Maven, and Octave’s `pkg` tool.
 
 The project home is at https://github.com/apjanke/jl-pkgman.
 
-jl-pkgman is part of the [https://github.com/apjanke/janklab](Janklab) suite of
+jl-pkgman is part of the [Janklab](https://github.com/apjanke/janklab) suite of
 libraries.
 
 # License
@@ -19,7 +19,7 @@ Business-friendly BSD 2-Clause License.
 
 # Contributing
 
-jl-pkgman is still in the early design and experimentation phase, so there’s not much to collaborate on, code-wise. What we need now are feature requests and use case descriptions; feel free to post those as [https://github.com/apjanke/jl-pkgman/issues](Issues on the project GitHub page).
+jl-pkgman is still in the early design and experimentation phase, so there’s not much to collaborate on, code-wise. What we need now are feature requests and use case descriptions; feel free to post those as [Issues on the project GitHub page](https://github.com/apjanke/jl-pkgman/issues).
 
 # Author
 
